@@ -16,6 +16,7 @@ import os
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 import sympy
 
 np.random.seed(42)
@@ -34,6 +35,8 @@ def clean_data(df):
 
     cleaned_df = df.select_dtypes(include=np.number)
     return cleaned_df.drop(columns=remove_numeric_columns)
+
+
 
 
  
@@ -62,8 +65,8 @@ if __name__ == '__main__':
     df_train_1= df_trainunsampled[df_trainunsampled['goal'] == 1]
     df_train_0= df_trainunsampled[df_trainunsampled['goal'] == 0]
 
-    dftrain_1s= df_train_1.sample(n=15000, random_state=42)
-    dftrain_0s= df_train_0.sample(n=15000, random_state=42)
+    dftrain_1s= df_train_1.sample(n=1000, random_state=42)
+    dftrain_0s= df_train_0.sample(n=1000, random_state=42)
     df_train= pd.concat([dftrain_1s, dftrain_0s], ignore_index=True)
 
     df_valid_1= df_trainunsampled[df_trainunsampled['goal'] == 1]
@@ -79,9 +82,12 @@ if __name__ == '__main__':
     
     y_train, y_valid = df_train[y_col].values, df_valid[y_col].values
 
-    #X_train, X_valid = df_train_cleaned.values, df_valid_cleaned.values
+
+
+    X_train, X_valid = df_train_cleaned.values, df_valid_cleaned.values
 
     ####################################
+
  
 
     #required_columns = ['period', 'shotGoalieFroze', 'shotPlayStopped', 'ShotType', 'shotOnEmptyNet', 'shotRebound', 'shotWasOnGoal', 'time', 'timeDifferenceSinceChange', 'averageRestDifference', 'timeSinceLastEvent', 'speedFromLastEvent', 'lastEventxCord', 'lastEventyCord', 'distanceFromLastEvent', 'lastEventShotAngle',           'lastEventShotDistance', 'LastEventCategory', 'shooterTimeOnIce', 'ShooterLeftRight',            'PlayerPositionThatDidEvent', 'defendingTeamForwardsOnIce', 'defendingTeamDefencemenOnIce',          'defendingTeamAverageTimeOnIce', 'defendingTeamAverageTimeOnIceOfForwards',        'defendingTeamAverageTimeOnIceOfDefencemen', 'defendingTeamAverageTimeOnIceSinceFaceoff',        'shootingTeamForwardsOnIce', 'shootingTeamDefencemenOnIce', 'shootingTeamAverageTimeOnIce',        'shootingTeamAverageTimeOnIceOfForwards', 'shootingTeamAverageTimeOnIceOfDefencemen',      'shotAngle', 'shotDistance']
@@ -96,25 +102,25 @@ if __name__ == '__main__':
 #indep= remove_dep_with_qr(df_train_cleaned) 
 
 
-features= ['isPlayoffGame', 'time', 'timeUntilNextEvent', 'timeSinceLastEvent', 'period', 'shotGoalieFroze', 'shotType_BACK', 'shotType_DEFL', 'shotType_SLAP', 'shotType_SNAP', 'shotType_TIP', 'shotType_WRAP', 'shotType_WRIST', 'xCordAdjusted', 'yCordAdjusted', 'shotAngleAdjusted', 'shotAnglePlusRebound', 'shotDistance', 'shotOnEmptyNet', 'shotRebound', 'shotAnglePlusReboundSpeed', 'shotRush', 'distanceFromLastEvent', 'lastEventShotAngle', 'lastEventShotDistance', 'lastEventxCord_adjusted', 'lastEventyCord_adjusted', 'timeSinceFaceoff', 'shooterTimeOnIce', 'shooterTimeOnIceSinceFaceoff', 'shootingTeamForwardsOnIce', 'shootingTeamDefencemenOnIce', 'shootingTeamAverageTimeOnIce', 'shootingTeamAverageTimeOnIceOfForwards', 'shootingTeamAverageTimeOnIceOfDefencemen', 'shootingTeamMaxTimeOnIce', 'shootingTeamMaxTimeOnIceOfForwards', 'shootingTeamMaxTimeOnIceOfDefencemen', 'shootingTeamMinTimeOnIce', 'shootingTeamMinTimeOnIceOfForwards', 'shootingTeamMinTimeOnIceOfDefencemen', 'shootingTeamAverageTimeOnIceSinceFaceoff', 'shootingTeamAverageTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamAverageTimeOnIceOfDefencemenSinceFaceoff', 'shootingTeamMaxTimeOnIceSinceFaceoff', 'shootingTeamMaxTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamMaxTimeOnIceOfDefencemenSinceFaceoff', 'shootingTeamMinTimeOnIceSinceFaceoff', 'shootingTeamMinTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamForwardsOnIce', 'defendingTeamAverageTimeOnIce', 'defendingTeamAverageTimeOnIceOfForwards', 'defendingTeamAverageTimeOnIceOfDefencemen', 'defendingTeamMaxTimeOnIce', 'defendingTeamMaxTimeOnIceOfForwards', 'defendingTeamMaxTimeOnIceOfDefencemen', 'defendingTeamMinTimeOnIce', 'defendingTeamMinTimeOnIceOfForwards', 'defendingTeamMinTimeOnIceOfDefencemen', 'defendingTeamAverageTimeOnIceSinceFaceoff', 'defendingTeamAverageTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamAverageTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamMaxTimeOnIceSinceFaceoff', 'defendingTeamMaxTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamMaxTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamMinTimeOnIceSinceFaceoff', 'defendingTeamMinTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'shotWasOnGoal','goal']
-feat= features
-feat = [f for f in features if f != 'goal']
-selected_features = []
-for f in feat:
-    selected_features.append(f)  
-    X_train = df_train[selected_features].values
-    X_valid = df_valid[selected_features].values
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_valid_scaled = scaler.fit_transform(X_valid)
+#features= ['isPlayoffGame', 'time', 'timeUntilNextEvent', 'timeSinceLastEvent', 'period', 'shotGoalieFroze', 'shotType_BACK', 'shotType_DEFL', 'shotType_SLAP', 'shotType_SNAP', 'shotType_TIP', 'shotType_WRAP', 'shotType_WRIST', 'xCordAdjusted', 'yCordAdjusted', 'shotAngleAdjusted', 'shotAnglePlusRebound', 'shotDistance', 'shotOnEmptyNet', 'shotRebound', 'shotAnglePlusReboundSpeed', 'shotRush', 'distanceFromLastEvent', 'lastEventShotAngle', 'lastEventShotDistance', 'lastEventxCord_adjusted', 'lastEventyCord_adjusted', 'timeSinceFaceoff', 'shooterTimeOnIce', 'shooterTimeOnIceSinceFaceoff', 'shootingTeamForwardsOnIce', 'shootingTeamDefencemenOnIce', 'shootingTeamAverageTimeOnIce', 'shootingTeamAverageTimeOnIceOfForwards', 'shootingTeamAverageTimeOnIceOfDefencemen', 'shootingTeamMaxTimeOnIce', 'shootingTeamMaxTimeOnIceOfForwards', 'shootingTeamMaxTimeOnIceOfDefencemen', 'shootingTeamMinTimeOnIce', 'shootingTeamMinTimeOnIceOfForwards', 'shootingTeamMinTimeOnIceOfDefencemen', 'shootingTeamAverageTimeOnIceSinceFaceoff', 'shootingTeamAverageTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamAverageTimeOnIceOfDefencemenSinceFaceoff', 'shootingTeamMaxTimeOnIceSinceFaceoff', 'shootingTeamMaxTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamMaxTimeOnIceOfDefencemenSinceFaceoff', 'shootingTeamMinTimeOnIceSinceFaceoff', 'shootingTeamMinTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamForwardsOnIce', 'defendingTeamAverageTimeOnIce', 'defendingTeamAverageTimeOnIceOfForwards', 'defendingTeamAverageTimeOnIceOfDefencemen', 'defendingTeamMaxTimeOnIce', 'defendingTeamMaxTimeOnIceOfForwards', 'defendingTeamMaxTimeOnIceOfDefencemen', 'defendingTeamMinTimeOnIce', 'defendingTeamMinTimeOnIceOfForwards', 'defendingTeamMinTimeOnIceOfDefencemen', 'defendingTeamAverageTimeOnIceSinceFaceoff', 'defendingTeamAverageTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamAverageTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamMaxTimeOnIceSinceFaceoff', 'defendingTeamMaxTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamMaxTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamMinTimeOnIceSinceFaceoff', 'defendingTeamMinTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'shotWasOnGoal','goal']
 
-    svm_clf = SVC(kernel="linear",gamma='scale', C=10)
-    svm_clf.fit(X_train_scaled, y_train)
-    y_pred = svm_clf.predict(X_valid_scaled)
-    score = svm_clf.score(X_valid_scaled, y_valid)
-    if score > 0.9:
-        print(f)
-        selected_features.remove(f)
+#feat= features
+#feat = [f for f in features if f != 'goal']
+#selected_features = []
+#for f in feat:
+#    selected_features.append(f)  
+ #   X_train = df_train[selected_features].values
+  #  X_valid = df_valid[selected_features].values
+   # 
+   # 
+
+   # svm_clf = SVC(kernel="linear",gamma='scale', C=10)
+   # svm_clf.fit(X_train_scaled, y_train)
+   # y_pred = svm_clf.predict(X_valid_scaled)
+   # score = svm_clf.score(X_valid_scaled, y_valid)
+   # if score > 0.9:
+    #    print(f)
+     #   selected_features.remove(f)
 
 #goalie froze
     
@@ -124,14 +130,55 @@ for f in feat:
 
 
 
+####################PCA
+scaler =  StandardScaler()
 
+X_train_scaled = scaler.fit_transform(X_train)
+X_valid_scaled = scaler.fit_transform(X_valid)
+
+pca = PCA(n_components=30) #############################
+X_train_pca = pca.fit_transform(X_train_scaled)
+X_valid_pca = pca.transform(X_valid_scaled)
+
+print(f"Explained variance by each component: {pca.explained_variance_ratio_}")
+print(f"Total variance explained by the selected components: {np.sum(pca.explained_variance_ratio_):.4f}")
+
+
+
+# SVM AFTER PCA #############################################################
+svm_clf = SVC(kernel="linear", C=1)
+svm_clf.fit(X_train_pca, y_train)
+y_pred = svm_clf.predict(X_valid_pca)
+
+
+accuracy = svm_clf.score(X_valid_pca, y_valid)
+print(f"SVM Accuracy after PCA transformation: {accuracy:.4f}")
+
+
+
+
+#################GRID SEARCH#######################################
+
+
+param_grid = {
+    'C': [0.1, 1, 10, 100],
+    'kernel': ['linear', 'rbf', 'poly'],
+    'gamma': ['scale', 'auto'],
+}
+
+grid_search = GridSearchCV(SVC(), param_grid, cv=5, n_jobs=-1)
+grid_search.fit(X_train_pca, y_train)
+print(f"Best parameters: {grid_search.best_params_}")
+
+best_svm = grid_search.best_estimator_
+test_accuracy = best_svm.score(X_valid_pca, y_valid)
+print(f"Test accuracy with best parameters: {test_accuracy:.4f}")
 
 
 
 
 
 ############################MODEL
-
 
 
 #svm_clf = SVC(kernel="linear",gamma='scale', C=10)
