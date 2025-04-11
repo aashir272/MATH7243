@@ -18,6 +18,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import sympy
+from sklearn.svm import LinearSVC
 
 np.random.seed(42)
 from sklearn.svm import SVC
@@ -43,9 +44,7 @@ def clean_data(df):
 def remove_dep_with_qr(df: pd.DataFrame, tol=1e-9) -> pd.DataFrame:
     arr = df.to_numpy().astype(float)
     # Q, R = np.linalg.qr(arr, mode='reduced') 
-    # If we want the complete decomposition, we can do:
     Q, R = np.linalg.qr(arr)
-    # Identify pivot columns from the diagonal of R
     diag = np.abs(np.diag(R))
     pivot_cols = np.where(diag > tol)[0]  # columns with diagonal > tolerance
     return df.iloc[:, pivot_cols]
@@ -64,67 +63,26 @@ if __name__ == '__main__':
 
     df_train_1= df_trainunsampled[df_trainunsampled['goal'] == 1]
     df_train_0= df_trainunsampled[df_trainunsampled['goal'] == 0]
-
-    dftrain_1s= df_train_1.sample(n=1000, random_state=42)
-    dftrain_0s= df_train_0.sample(n=1000, random_state=42)
-    df_train= pd.concat([dftrain_1s, dftrain_0s], ignore_index=True)
+    dftrain_1s= df_train_1.sample(n=48000, random_state=42)             ################adapt number of samples here max number of goals98000 
+    dftrain_0s= df_train_0.sample(n=48000, random_state=42)
+    
+    df_train= df_trainunsampled#pd.concat([dftrain_1s, dftrain_0s], ignore_index=True)
 
     df_valid_1= df_trainunsampled[df_trainunsampled['goal'] == 1]
     df_valid_0= df_validunsampled[df_validunsampled['goal'] == 0]
-    dfvalid_1s= df_valid_1.sample(n=1000, random_state=42)
-    dfvalid_0s= df_valid_0.sample(n=1000, random_state=42)
+    dfvalid_1s= df_valid_1.sample(n=10000, random_state=42)
+    dfvalid_0s= df_valid_0.sample(n=10000, random_state=42)
 
-    df_valid= pd.concat([dfvalid_1s, dfvalid_0s], ignore_index=True)
+    df_valid= df_validunsampled#pd.concat([dfvalid_1s, dfvalid_0s], ignore_index=True)
 
 
     df_train_cleaned = clean_data(df_train)
     df_valid_cleaned = clean_data(df_valid)
     
     y_train, y_valid = df_train[y_col].values, df_valid[y_col].values
-
-
-
     X_train, X_valid = df_train_cleaned.values, df_valid_cleaned.values
 
-    ####################################
 
- 
-
-    #required_columns = ['period', 'shotGoalieFroze', 'shotPlayStopped', 'ShotType', 'shotOnEmptyNet', 'shotRebound', 'shotWasOnGoal', 'time', 'timeDifferenceSinceChange', 'averageRestDifference', 'timeSinceLastEvent', 'speedFromLastEvent', 'lastEventxCord', 'lastEventyCord', 'distanceFromLastEvent', 'lastEventShotAngle',           'lastEventShotDistance', 'LastEventCategory', 'shooterTimeOnIce', 'ShooterLeftRight',            'PlayerPositionThatDidEvent', 'defendingTeamForwardsOnIce', 'defendingTeamDefencemenOnIce',          'defendingTeamAverageTimeOnIce', 'defendingTeamAverageTimeOnIceOfForwards',        'defendingTeamAverageTimeOnIceOfDefencemen', 'defendingTeamAverageTimeOnIceSinceFaceoff',        'shootingTeamForwardsOnIce', 'shootingTeamDefencemenOnIce', 'shootingTeamAverageTimeOnIce',        'shootingTeamAverageTimeOnIceOfForwards', 'shootingTeamAverageTimeOnIceOfDefencemen',      'shotAngle', 'shotDistance']
-
-    #available_columns = [col for col in required_columns if col in df_train.columns]
-    #dfnew= df_train[available_columns]
-
-   # dfnewvalid= df_valid[available_columns]
-  #  y_train, y_valid = df_train[y_col].values, df_valid[y_col].values
-##    X_train, X_valid = dfnew.values, dfnewvalid.values
-
-#indep= remove_dep_with_qr(df_train_cleaned) 
-
-
-#features= ['isPlayoffGame', 'time', 'timeUntilNextEvent', 'timeSinceLastEvent', 'period', 'shotGoalieFroze', 'shotType_BACK', 'shotType_DEFL', 'shotType_SLAP', 'shotType_SNAP', 'shotType_TIP', 'shotType_WRAP', 'shotType_WRIST', 'xCordAdjusted', 'yCordAdjusted', 'shotAngleAdjusted', 'shotAnglePlusRebound', 'shotDistance', 'shotOnEmptyNet', 'shotRebound', 'shotAnglePlusReboundSpeed', 'shotRush', 'distanceFromLastEvent', 'lastEventShotAngle', 'lastEventShotDistance', 'lastEventxCord_adjusted', 'lastEventyCord_adjusted', 'timeSinceFaceoff', 'shooterTimeOnIce', 'shooterTimeOnIceSinceFaceoff', 'shootingTeamForwardsOnIce', 'shootingTeamDefencemenOnIce', 'shootingTeamAverageTimeOnIce', 'shootingTeamAverageTimeOnIceOfForwards', 'shootingTeamAverageTimeOnIceOfDefencemen', 'shootingTeamMaxTimeOnIce', 'shootingTeamMaxTimeOnIceOfForwards', 'shootingTeamMaxTimeOnIceOfDefencemen', 'shootingTeamMinTimeOnIce', 'shootingTeamMinTimeOnIceOfForwards', 'shootingTeamMinTimeOnIceOfDefencemen', 'shootingTeamAverageTimeOnIceSinceFaceoff', 'shootingTeamAverageTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamAverageTimeOnIceOfDefencemenSinceFaceoff', 'shootingTeamMaxTimeOnIceSinceFaceoff', 'shootingTeamMaxTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamMaxTimeOnIceOfDefencemenSinceFaceoff', 'shootingTeamMinTimeOnIceSinceFaceoff', 'shootingTeamMinTimeOnIceOfForwardsSinceFaceoff', 'shootingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamForwardsOnIce', 'defendingTeamAverageTimeOnIce', 'defendingTeamAverageTimeOnIceOfForwards', 'defendingTeamAverageTimeOnIceOfDefencemen', 'defendingTeamMaxTimeOnIce', 'defendingTeamMaxTimeOnIceOfForwards', 'defendingTeamMaxTimeOnIceOfDefencemen', 'defendingTeamMinTimeOnIce', 'defendingTeamMinTimeOnIceOfForwards', 'defendingTeamMinTimeOnIceOfDefencemen', 'defendingTeamAverageTimeOnIceSinceFaceoff', 'defendingTeamAverageTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamAverageTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamMaxTimeOnIceSinceFaceoff', 'defendingTeamMaxTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamMaxTimeOnIceOfDefencemenSinceFaceoff', 'defendingTeamMinTimeOnIceSinceFaceoff', 'defendingTeamMinTimeOnIceOfForwardsSinceFaceoff', 'defendingTeamMinTimeOnIceOfDefencemenSinceFaceoff', 'shotWasOnGoal','goal']
-
-#feat= features
-#feat = [f for f in features if f != 'goal']
-#selected_features = []
-#for f in feat:
-#    selected_features.append(f)  
- #   X_train = df_train[selected_features].values
-  #  X_valid = df_valid[selected_features].values
-   # 
-   # 
-
-   # svm_clf = SVC(kernel="linear",gamma='scale', C=10)
-   # svm_clf.fit(X_train_scaled, y_train)
-   # y_pred = svm_clf.predict(X_valid_scaled)
-   # score = svm_clf.score(X_valid_scaled, y_valid)
-   # if score > 0.9:
-    #    print(f)
-     #   selected_features.remove(f)
-
-#goalie froze
-    
-#rank= np.linalg.matrix_rank(X_train)
 
 
 
@@ -134,11 +92,26 @@ if __name__ == '__main__':
 scaler =  StandardScaler()
 
 X_train_scaled = scaler.fit_transform(X_train)
-X_valid_scaled = scaler.fit_transform(X_valid)
+X_valid_scaled = scaler.transform(X_valid)
 
 pca = PCA(n_components=30) #############################
 X_train_pca = pca.fit_transform(X_train_scaled)
 X_valid_pca = pca.transform(X_valid_scaled)
+
+feature_names = df_train_cleaned.columns
+
+# PCA results###################################
+feature_names = df_train_cleaned.columns
+loadings_df = pd.DataFrame(pca.components_, columns=feature_names)
+for i, component in enumerate(loadings_df.values):
+    sorted_indices = np.argsort(np.abs(component))[::-1]  
+    top_features = feature_names[sorted_indices[:5]]
+    top_values = component[sorted_indices[:5]]
+    
+    print(f"\n🧩 Principal Component {i+1}")
+    for feature, value in zip(top_features, top_values):
+        direction = "↑" if value > 0 else "↓"
+        print(f"  {feature:40s} {direction} ({value:.4f})")
 
 print(f"Explained variance by each component: {pca.explained_variance_ratio_}")
 print(f"Total variance explained by the selected components: {np.sum(pca.explained_variance_ratio_):.4f}")
@@ -146,7 +119,8 @@ print(f"Total variance explained by the selected components: {np.sum(pca.explain
 
 
 # SVM AFTER PCA #############################################################
-svm_clf = SVC(kernel="linear", C=1)
+svm_clf = LinearSVC(C=100, max_iter=10000)  # SVC(kernel="linear", C=10)
+#print(f"Number of support vectors: {len(svm_clf.support_)}")
 svm_clf.fit(X_train_pca, y_train)
 y_pred = svm_clf.predict(X_valid_pca)
 
@@ -160,34 +134,33 @@ print(f"SVM Accuracy after PCA transformation: {accuracy:.4f}")
 #################GRID SEARCH#######################################
 
 
-param_grid = {
-    'C': [0.1, 1, 10, 100],
-    'kernel': ['linear', 'rbf', 'poly'],
-    'gamma': ['scale', 'auto'],
-}
+#param_grid = {
+#    'C': [0.1, 1, 10, 100],
+#    'kernel': ['linear'], #, 'rbf', 'poly'],
+#    'gamma': ['scale', 'auto'],
+#}
 
-grid_search = GridSearchCV(SVC(), param_grid, cv=5, n_jobs=-1)
-grid_search.fit(X_train_pca, y_train)
-print(f"Best parameters: {grid_search.best_params_}")
+#grid_search = GridSearchCV(SVC(), param_grid, cv=5, n_jobs=-1)
+#print(f"Best parameters: {grid_search.best_params_}")
+#Best parameters: {'C': 100, 'gamma': 'scale', 'kernel': 'linear'}
 
-best_svm = grid_search.best_estimator_
-test_accuracy = best_svm.score(X_valid_pca, y_valid)
-print(f"Test accuracy with best parameters: {test_accuracy:.4f}")
+#best_svm = grid_search.best_estimator_
+#test_accuracy = best_svm.score(X_valid_pca, y_valid)
+#print(f"Test accuracy with best parameters: {test_accuracy:.4f}")
 
 
-
+########################################################################
 
 
 ############################MODEL
 
 
-#svm_clf = SVC(kernel="linear",gamma='scale', C=10)
-#svm_clf.fit(X_train_scaled, y_train)
+#svm_clf = SVC(kernel="linear",gamma='scale', C=100)
+#svm_clf.fit(X_train_pca, y_train)
 
-######################Predictions
-#y_pred = svm_clf.predict(X_valid_scaled)
+######################Predictions########################################
+#y_pred = svm_clf.predict(X_valid_pca)
 
-#score = svm_clf.score(X_valid_scaled, y_valid)
+#score = svm_clf.score(X_valid_pca, y_valid)
 
 #print("Accuracy:", score)
-#,class_weight='balanced'
