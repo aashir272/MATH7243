@@ -30,6 +30,7 @@ from sklearn.metrics import classification_report
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score
 
 
 
@@ -226,6 +227,9 @@ decision_scores = clf.decision_function(X_valid_pca)
 
 threshold = 0.3
 y_pred_custom = (decision_scores > threshold).astype(int)
+
+accuracy = accuracy_score(y_valid, y_pred_custom)
+print(f"Custom threshold accuracy (threshold={threshold}): {accuracy:.4f}")
 
 precision = precision_score(y_valid, y_pred_custom)
 recall = recall_score(y_valid, y_pred_custom)
